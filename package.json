@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "description": "Byzantion stacks streamer",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "start:dev": "tsc -w",
+    "start:prod": "env NODE_ENV=production nodemon dist/main",
+    "lint": "eslint . --ext .ts",
+    "lint-and-fix": "eslint . --fix",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+  },
+  "dependencies": {
+    "@stacks/blockchain-api-client": "^4.0.4",
+    "dotenv": "^16.0.1",
+    "socket.io-client": "^4.5.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/node": "18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1",
+    "ts-node": "^10.8.1",
+    "tsc-watch": "^5.0.3",
+    "typescript": "^4.7.4"
+  }
+}
