@@ -8,7 +8,7 @@
     "clean": "tsc --build --clean",
     "start:dev": "ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
-    "start:prod": "env NODE_ENV=production nodemon dist/main",
+    "start:prod": "env NODE_ENV=production node dist/main",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
