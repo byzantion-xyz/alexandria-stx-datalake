@@ -1,6 +1,9 @@
-import Application from './application';
+import 'reflect-metadata';
 
+import Application from './application';
 import BlockService from './common/services/block.service';
+
+import { AppDataSource } from './database/data-source';
 
 import {
   Block,
@@ -8,10 +11,10 @@ import {
   StacksApiWebSocketClient
 } from '@stacks/blockchain-api-client';
 import { tx_list } from './common/examples/tx_list';
+import { block } from './common/examples/block';
 
 (async () => {
-  const application = new Application();
-  await application.connectDB();
+  await AppDataSource.initialize();
 
   const blockService = new BlockService();
 
@@ -25,6 +28,9 @@ import { tx_list } from './common/examples/tx_list';
       blockService.processBlock(event);
     });
   } catch (error) {
-    console.error('Could not start server', error);
+    console.error('Could not connect to stacks node', error);
   }
+
+  //await blockService.processTransactions(tx_list);
+  //await blockService.processBlock(block);
 })();

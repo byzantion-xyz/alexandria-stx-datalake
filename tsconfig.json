@@ -5,9 +5,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "module": "commonjs",
-    "noImplicitAny": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "esModuleInterop": true
+    "strictPropertyInitialization": false
   }
 }

@@ -17,13 +17,16 @@
     "@types/dotenv": "^8.2.0",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "socket.io-client": "^4.5.1"
+    "pg": "^8.7.3",
+    "reflect-metadata": "^0.1.13",
+    "socket.io-client": "^4.5.1",
+    "typeorm": "^0.3.7"
   },
   "devDependencies": {
     "@stacks/stacks-blockchain-api-types": "^4.0.4",
     "@tsconfig/node16": "^1.0.3",
     "@types/axios": "^0.14.0",
-    "@types/node": "18.0.0",
+    "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.18.0",
