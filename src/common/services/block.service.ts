@@ -13,7 +13,6 @@ import type {
   TransactionNotFound
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
-import { TransactionResultsToJSON } from '@stacks/blockchain-api-client';
 
 type GetTransactionsResponse = {
   data: TransactionList;
@@ -49,8 +48,12 @@ export default class BlockService {
     for (const tx_hash of Object.keys(txs)) {
       const tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
 
-      if (tx_result?.found) {
-        const tx: StacksTransaction | MempoolTransaction = tx_result?.result;
+      if (
+        tx_result?.found &&
+        tx_result.result.tx_type === 'contract_call' &&
+        tx_result.result.tx_status === 'success'
+      ) {
+        const tx: StacksTransaction = tx_result?.result;
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
