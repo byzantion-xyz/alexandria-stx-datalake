@@ -14,9 +14,6 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-import { DI } from '../../application';
-import { Transaction } from '../entities/transaction.entity';
-
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
     console.log(block);
@@ -43,9 +40,6 @@ export default class BlockService {
 
       if (tx_result?.found) {
         let tx: StacksTransaction | MempoolTransaction = tx_result.result;
-
-        let newTx = new Transaction(tx.tx_id, JSON.parse(JSON.stringify(tx)));
-        await DI.em.getRepository(Transaction).create(newTx);
       }
     }
   };
