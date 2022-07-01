@@ -25,9 +25,9 @@ export default class BlockService {
     const querySize = 50;
 
     for (let i = 0; i < txsLength; i += querySize) {
-      let url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
+      const url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
 
-      for (let tx_hash of block.txs.slice(i, i + querySize)) {
+      for (const tx_hash of block.txs.slice(i, i + querySize)) {
         url.searchParams.append('tx_id', tx_hash);
       }
 
@@ -36,16 +36,22 @@ export default class BlockService {
 
       await this.processTransactions(txs);
     }
+
+    const newBlock: Block = new Block();
+    newBlock.hash = block.hash;
+    newBlock.height = block.height;
+    newBlock.timestamp = new Date(block.burn_block_time_iso);
+    await AppDataSource.manager.save(newBlock);
   };
 
   public processTransactions = async (txs: TransactionList): Promise<void> => {
-    let tx_batch: Transaction[] = [];
-    for (let tx_hash of Object.keys(txs)) {
-      let tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
+    const tx_batch: Transaction[] = [];
+    for (const tx_hash of Object.keys(txs)) {
+      const tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
 
       if (tx_result?.found) {
-        let tx: StacksTransaction | MempoolTransaction = tx_result?.result;
-        let transaction = new Transaction();
+        const tx: StacksTransaction | MempoolTransaction = tx_result?.result;
+        const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
         tx_batch.push(transaction);

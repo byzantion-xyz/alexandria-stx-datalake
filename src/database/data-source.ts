@@ -6,7 +6,7 @@ import { appConfig } from '../common/config/app.config';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL,
+  url: appConfig.databaseUrl,
   synchronize: true,
   logging: false,
   entities: [Transaction, Block],

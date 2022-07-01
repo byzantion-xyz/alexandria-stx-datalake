@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn, Timestamp } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Block {
@@ -6,7 +6,7 @@ export class Block {
   hash: string;
 
   @Column('bigint')
-  height: bigint;
+  height: number;
 
   @Column()
   timestamp: Date;
