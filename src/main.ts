@@ -1,18 +1,30 @@
+import Application from './application';
+
+import BlockService from './common/services/block.service';
+
 import {
   Block,
   connectWebSocketClient,
   StacksApiWebSocketClient
 } from '@stacks/blockchain-api-client';
+import { tx_list } from './common/examples/tx_list';
 
-const client: StacksApiWebSocketClient = await connectWebSocketClient(
-  'wss://stacks-node-api.mainnet.stacks.co'
-);
+(async () => {
+  const application = new Application();
+  await application.connectDB();
 
-client.subscribeBlocks((event: Block) => {
-  console.log('new block');
-  console.log(event);
-});
+  const blockService = new BlockService();
 
-setInterval((_) => {
-  console.log('Waiting for new block');
-}, 60000);
+  try {
+    const client: StacksApiWebSocketClient = await connectWebSocketClient(
+      'wss://stacks-node-api.mainnet.stacks.co'
+    );
+
+    client.subscribeBlocks((event: Block) => {
+      console.log(event);
+      blockService.processBlock(event);
+    });
+  } catch (error) {
+    console.error('Could not start server', error);
+  }
+})();

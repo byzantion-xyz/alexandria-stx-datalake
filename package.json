@@ -2,24 +2,29 @@
   "version": "0.0.1",
   "description": "Byzantion stacks streamer",
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "start:dev": "tsc -w",
+    "start:dev": "ts-node src/main.ts",
+    "start:dev:watch": "ts-node-dev --respawn src/main.ts",
     "start:prod": "env NODE_ENV=production nodemon dist/main",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "dependencies": {
+    "@mikro-orm/core": "^5.2.1",
+    "@mikro-orm/postgresql": "^5.2.1",
     "@stacks/blockchain-api-client": "^4.0.4",
+    "@types/dotenv": "^8.2.0",
+    "axios": "^0.27.2",
     "dotenv": "^16.0.1",
-    "nodemon": "^2.0.18",
     "socket.io-client": "^4.5.1"
   },
   "devDependencies": {
+    "@stacks/stacks-blockchain-api-types": "^4.0.4",
     "@tsconfig/node16": "^1.0.3",
+    "@types/axios": "^0.14.0",
     "@types/node": "18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
@@ -27,6 +32,7 @@
     "eslint-config-prettier": "^8.5.0",
     "prettier": "^2.7.1",
     "ts-node": "^10.8.1",
+    "ts-node-dev": "^2.0.0",
     "tsc-watch": "^5.0.3",
     "typescript": "^4.7.4"
   }
