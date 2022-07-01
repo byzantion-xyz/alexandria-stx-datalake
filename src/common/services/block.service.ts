@@ -21,27 +21,32 @@ type GetTransactionsResponse = {
 
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
-    const txsLength = block.txs.length;
-    const querySize = 50;
+    try {
+      const txsLength = block.txs.length;
+      const querySize = 50;
 
-    for (let i = 0; i < txsLength; i += querySize) {
-      const url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
+      for (let i = 0; i < txsLength; i += querySize) {
+        const url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
 
-      for (const tx_hash of block.txs.slice(i, i + querySize)) {
-        url.searchParams.append('tx_id', tx_hash);
+        for (const tx_hash of block.txs.slice(i, i + querySize)) {
+          url.searchParams.append('tx_id', tx_hash);
+        }
+
+        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(url.href);
+        const txs: TransactionList = result.data;
+
+        await this.processTransactions(txs);
       }
 
-      const result: AxiosResponse = await axios.get<GetTransactionsResponse>(url.href);
-      const txs: TransactionList = result.data;
-
-      await this.processTransactions(txs);
+      const newBlock: Block = new Block();
+      newBlock.hash = block.hash;
+      newBlock.height = block.height;
+      newBlock.timestamp = new Date(block.burn_block_time_iso);
+      await AppDataSource.manager.save(newBlock);
+    } catch (err) {
+      console.error(`Failed to process block height: ${block.height}`);
+      console.error(err);
     }
-
-    const newBlock: Block = new Block();
-    newBlock.hash = block.hash;
-    newBlock.height = block.height;
-    newBlock.timestamp = new Date(block.burn_block_time_iso);
-    await AppDataSource.manager.save(newBlock);
   };
 
   public processTransactions = async (txs: TransactionList): Promise<void> => {

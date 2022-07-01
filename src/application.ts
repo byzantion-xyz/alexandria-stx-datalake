@@ -13,6 +13,7 @@ export default class Application {
       console.log('Connected to DB');
     } catch (error) {
       console.error('Could not connect to the database', error);
+      throw error;
     }
   };
 
@@ -30,6 +31,7 @@ export default class Application {
       });
     } catch (error) {
       console.error('Could not connect to stacks node', error);
+      throw error;
     }
   };
 }
