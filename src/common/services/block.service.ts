@@ -6,6 +6,7 @@ import { Block } from '../../database/entities/Block';
 
 import type {
   Block as StacksBlock,
+  ContractCallTransaction,
   MempoolTransaction,
   Transaction as StacksTransaction,
   TransactionFound,
@@ -53,7 +54,7 @@ export default class BlockService {
         tx_result.result.tx_type === 'contract_call' &&
         tx_result.result.tx_status === 'success'
       ) {
-        const tx: StacksTransaction = tx_result?.result;
+        const tx: ContractCallTransaction = tx_result?.result;
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
@@ -62,7 +63,9 @@ export default class BlockService {
     }
 
     try {
-      await AppDataSource.manager.save(tx_batch);
+      if (tx_batch.length) {
+        await AppDataSource.manager.save(tx_batch);
+      }
     } catch (err) {
       console.error(err);
     }
