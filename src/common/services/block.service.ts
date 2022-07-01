@@ -21,16 +21,16 @@ type GetTransactionsResponse = {
 
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
-    console.log(block);
-
     const txsLength = block.txs.length;
+    const querySize = 50;
 
-    for (let i = 0; i <= txsLength; i += 100) {
+    for (let i = 0; i < txsLength; i += querySize) {
       let url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
 
-      for (let tx_hash of block.txs.slice(i, i + 100)) {
+      for (let tx_hash of block.txs.slice(i, i + querySize)) {
         url.searchParams.append('tx_id', tx_hash);
       }
+
       const result: AxiosResponse = await axios.get<GetTransactionsResponse>(url.href);
       const txs: TransactionList = result.data;
 
