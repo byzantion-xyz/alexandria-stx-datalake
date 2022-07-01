@@ -13,4 +13,10 @@ export class Transaction {
 
   @Column({ default: false })
   missing: boolean;
+
+  @Column()
+  contract_id: string;
+
+  @Column()
+  block_height: number;
 }
