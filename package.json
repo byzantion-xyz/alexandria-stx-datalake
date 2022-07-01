@@ -2,8 +2,9 @@
   "version": "0.0.1",
   "description": "Byzantion stacks streamer",
   "license": "MIT",
+  "main": "",
   "scripts": {
-    "build": "tsc --build",
+    "build": "yarn tsc --build",
     "clean": "tsc --build --clean",
     "start:dev": "ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
