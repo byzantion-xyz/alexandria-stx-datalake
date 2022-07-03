@@ -8,6 +8,9 @@ export class Block {
   @Column('bigint')
   height: number;
 
+  @Column('jsonb')
+  block: JSON;
+
   @Column()
   timestamp: Date;
 }

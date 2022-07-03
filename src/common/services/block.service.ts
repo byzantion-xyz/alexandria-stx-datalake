@@ -43,6 +43,8 @@ export default class BlockService {
       newBlock.hash = block.hash;
       newBlock.height = block.height;
       newBlock.timestamp = new Date(block.burn_block_time_iso);
+      newBlock.block = JSON.parse(JSON.stringify(block));
+
       await AppDataSource.manager.save(newBlock);
 
       console.log(`Processed block height: ${block.height}`);
