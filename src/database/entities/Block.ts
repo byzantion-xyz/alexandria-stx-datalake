@@ -5,7 +5,7 @@ export class Block {
   @PrimaryColumn()
   hash: string;
 
-  @Column('bigint')
+  @Column({ type: 'bigint', unique: true })
   height: number;
 
   @Column('jsonb')
