@@ -7,8 +7,6 @@ import { Block } from '../../database/entities/Block';
 import type {
   Block as StacksBlock,
   ContractCallTransaction,
-  MempoolTransaction,
-  Transaction as StacksTransaction,
   TransactionFound,
   TransactionList,
   TransactionNotFound
