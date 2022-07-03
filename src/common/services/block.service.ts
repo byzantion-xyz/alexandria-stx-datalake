@@ -24,6 +24,7 @@ export default class BlockService {
     try {
       const txsLength = block.txs.length;
       const querySize = 50;
+      console.log(`Processing block height: ${block.height} transactions: ${txsLength}`);
 
       for (let i = 0; i < txsLength; i += querySize) {
         const url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
@@ -43,6 +44,8 @@ export default class BlockService {
       newBlock.height = block.height;
       newBlock.timestamp = new Date(block.burn_block_time_iso);
       await AppDataSource.manager.save(newBlock);
+
+      console.log(`Processed block height: ${block.height}`);
     } catch (err) {
       console.error(`Failed to process block height: ${block.height}`);
       console.error(err);

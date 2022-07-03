@@ -26,8 +26,10 @@ export default class Application {
       );
 
       client.subscribeBlocks((event: Block) => {
-        console.log(event);
-        blockService.processBlock(event);
+        if (event.canonical) {
+          console.log(event);
+          blockService.processBlock(event);
+        }
       });
     } catch (error) {
       console.error('Could not connect to stacks node', error);
