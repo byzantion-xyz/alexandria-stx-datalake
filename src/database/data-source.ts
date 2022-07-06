@@ -7,7 +7,7 @@ import { appConfig } from '../common/config/app.config';
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: appConfig.databaseUrl,
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: [Transaction, Block],
   migrations: [],

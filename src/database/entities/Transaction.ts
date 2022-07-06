@@ -15,8 +15,8 @@ export class Transaction {
   missing: boolean;
 
   @Column()
-  contract_id: string;
+  readonly contract_id!: string;
 
   @Column()
-  block_height: number;
+  readonly block_height!: number;
 }
