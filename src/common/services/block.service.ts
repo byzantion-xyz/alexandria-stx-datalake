@@ -12,6 +12,7 @@ import type {
   TransactionNotFound
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
+import { appConfig } from '../config/app.config';
 
 type GetTransactionsResponse = {
   data: TransactionList;
@@ -25,7 +26,7 @@ export default class BlockService {
       console.log(`Processing block height: ${block.height} transactions: ${txsLength}`);
 
       for (let i = 0; i < txsLength; i += querySize) {
-        const url = new URL(`https://stacks-node-api.mainnet.stacks.co/extended/v1/tx/multiple`);
+        const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
 
         for (const tx_hash of block.txs.slice(i, i + querySize)) {
           url.searchParams.append('tx_id', tx_hash);
