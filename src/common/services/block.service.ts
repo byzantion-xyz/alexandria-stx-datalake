@@ -92,12 +92,12 @@ export default class BlockService {
       'select array(select block.height::int from block);'
     );
     const arrBlockHeights = processedBlockHeights[0].array;
-    const missingBlocks = totalBlocks - processedBlockHeights.length;
+    const missingBlocks = totalBlocks - arrBlockHeights.length;
     console.log(`fetchHistoricalBlocks() Total blocks: ${totalBlocks}  Missing: ${missingBlocks}`);
 
     for (let i = 1; i < totalBlocks; i++) {
       if (!arrBlockHeights.includes(i)) {
-        console.log(`Querying block: ${i}`);
+        console.log(`Querying block height: ${i}`);
         const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${i}`;
         const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(blockPath);
         const block: StacksBlock = result.data;
