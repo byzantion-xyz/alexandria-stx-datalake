@@ -1,30 +1,31 @@
 
 -- CreateTable
-CREATE TABLE "transaction" (
-    "hash" TEXT NOT NULL,
-    "tx" JSONB NOT NULL,
-    "missing" BOOLEAN NOT NULL DEFAULT false,
-    "processed" BOOLEAN NOT NULL DEFAULT false
+CREATE TABLE public."transaction" (
+	hash varchar NOT NULL,
+	tx jsonb NOT NULL,
+	processed bool NOT NULL DEFAULT false,
+	missing bool NOT NULL DEFAULT false,
+    /* JSONB generated columns */
+	contract_id text NULL GENERATED ALWAYS AS ((tx -> 'contract_call'::text) ->> 'contract_id'::text) STORED,
+	block_height int8 NULL GENERATED ALWAYS AS ((tx -> 'block_height'::text)::bigint) STORED,
 
-    CONSTRAINT "transaction_pkey" PRIMARY KEY ("hash")
+	CONSTRAINT "transaction_pkey" PRIMARY KEY (hash)
 );
 
-CREATE TABLE "block" (
-  "hash" TEXT NOT NULL,
-  "height" BIGINT NOT NULL,
-  "timestamp" BIGINT NOT NULL,
-  "block" JSONB NOT NULL,
+CREATE TABLE public.block (
+	hash varchar NOT NULL,
+	height int8 NOT NULL,
+	"timestamp" timestamp NOT NULL,
+	block jsonb NOT NULL,
 
-  CONSTRAINT "hash_pkey" PRIMARY KEY ("hash") 
+	CONSTRAINT "block_hash_pkey" PRIMARY KEY (hash),
+	CONSTRAINT "block_height_ukey" UNIQUE (height)
 );
 
-/* Add JSONB generated columns */
-ALTER TABLE public."transaction" ADD contract_id text NULL GENERATED ALWAYS AS (tx -> 'contract_call'->>'contract_id'::text) STORED;
-ALTER TABLE public."transaction" ADD block_height bigint NULL GENERATED ALWAYS AS ((tx -> 'block_height')::bigint) STORED;
 
 /* Create indexes for jsonb generated colums */
-CREATE INDEX transaction_contract_id ON public.transaction USING btree (contract_id);
 CREATE INDEX transaction_block_height ON public.transaction USING btree (block_height);
+CREATE INDEX transaction_contract_id ON public.transaction USING btree (contract_id);
 
 /* Create function to notify upon block saved */
 CREATE OR REPLACE FUNCTION public.notify_block()
