@@ -12,7 +12,7 @@ import { appConfig } from './common/config/app.config';
 
   await application.socketSubscription();
 
-  if (appConfig.pullHistoricalData) {
+  if (appConfig.streamHistoricalData) {
     await application.fetchHistoricalBlocks();
   }
 })();
