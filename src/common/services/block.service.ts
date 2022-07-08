@@ -20,7 +20,7 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-const axiosOptions: AxiosRequestConfig = { timeout: 10000 };
+const axiosOptions: AxiosRequestConfig = { timeout: 30000 };
 
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
