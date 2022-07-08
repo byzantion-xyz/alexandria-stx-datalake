@@ -36,4 +36,17 @@ export default class Application {
       throw error;
     }
   };
+
+  public fetchHistoricalBlocks = async (): Promise<void> => {
+    console.log('fetchHistoricalBlocks()');
+    try {
+      const blockService = new BlockService();
+
+      await blockService.processHistoricalBlocks();
+      console.log('fetchHistoricalBlocks() completed');
+    } catch (err) {
+      console.warn('fetchHistoricalBlocks() failed');
+      console.warn(err);
+    }
+  };
 }

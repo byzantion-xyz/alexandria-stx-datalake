@@ -9,10 +9,12 @@ import type {
   ContractCallTransaction,
   TransactionFound,
   TransactionList,
+  BlockListResponse,
   TransactionNotFound
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
+import { GetBlockByHeightRequest } from '@stacks/blockchain-api-client';
 
 type GetTransactionsResponse = {
   data: TransactionList;
@@ -77,6 +79,30 @@ export default class BlockService {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  public processHistoricalBlocks = async (): Promise<void> => {
+    const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
+    const result: AxiosResponse = await axios.get(recentBlockUrl);
+    const data: BlockListResponse = result.data;
+    const totalBlocks = data.total;
+
+    const processedBlockHeights = await AppDataSource.manager.query(
+      'select block.height::bigint from block;'
+    );
+    const arrBlockHeights = processedBlockHeights.map((item: any) => Number(item.height));
+    const missingBlocks = totalBlocks - processedBlockHeights.length;
+    console.log(`fetchHistoricalBlocks() Total blocks: ${totalBlocks}  Missing: ${missingBlocks}`);
+
+    for (let i = 1; i < totalBlocks; i++) {
+      if (!arrBlockHeights.includes(i)) {
+        console.log(`Querying block: ${i}`);
+        const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${i}`;
+        const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(blockPath);
+        const block: StacksBlock = result.data;
+        await this.processBlock(block);
+      }
     }
   };
 }
