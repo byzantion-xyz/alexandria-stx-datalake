@@ -89,9 +89,9 @@ export default class BlockService {
     const totalBlocks = data.total;
 
     const processedBlockHeights = await AppDataSource.manager.query(
-      'select block.height::bigint from block;'
+      'select array(select block.height::int from block);'
     );
-    const arrBlockHeights = processedBlockHeights.map((item: any) => Number(item.height));
+    const arrBlockHeights = processedBlockHeights[0].array;
     const missingBlocks = totalBlocks - processedBlockHeights.length;
     console.log(`fetchHistoricalBlocks() Total blocks: ${totalBlocks}  Missing: ${missingBlocks}`);
 
