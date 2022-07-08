@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
 import { Transaction } from '../../database/entities/Transaction';
@@ -20,6 +20,8 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
+const axiosOptions: AxiosRequestConfig = { timeout: 10000 };
+
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
     try {
@@ -34,7 +36,10 @@ export default class BlockService {
           url.searchParams.append('tx_id', tx_hash);
         }
 
-        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(url.href);
+        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
+          url.href,
+          axiosOptions
+        );
         const txs: TransactionList = result.data;
 
         await this.processTransactions(txs);
@@ -84,7 +89,7 @@ export default class BlockService {
 
   public processHistoricalBlocks = async (): Promise<void> => {
     const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
-    const result: AxiosResponse = await axios.get(recentBlockUrl);
+    const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
     const data: BlockListResponse = result.data;
     const totalBlocks = data.total;
 
@@ -99,7 +104,10 @@ export default class BlockService {
       if (!arrBlockHeights.includes(i)) {
         console.log(`Querying block height: ${i}`);
         const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${i}`;
-        const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(blockPath);
+        const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(
+          blockPath,
+          axiosOptions
+        );
         const block: StacksBlock = result.data;
         await this.processBlock(block);
       }
