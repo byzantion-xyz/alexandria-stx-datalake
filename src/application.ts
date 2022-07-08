@@ -3,6 +3,7 @@ import {
   connectWebSocketClient,
   StacksApiWebSocketClient
 } from '@stacks/blockchain-api-client';
+import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
 
@@ -21,16 +22,17 @@ export default class Application {
     try {
       const blockService = new BlockService();
 
-      const client: StacksApiWebSocketClient = await connectWebSocketClient(
-        'wss://stacks-node-api.mainnet.stacks.co'
-      );
+      const socketUrl = 'wss://stacks-node-api.mainnet.stacks.co';
+      const client: StacksApiWebSocketClient = await connectWebSocketClient(socketUrl);
 
-      client.subscribeBlocks((event: Block) => {
+      await client.subscribeBlocks(async (event: Block) => {
         if (event.canonical) {
           console.log(event);
-          blockService.processBlock(event);
+          await blockService.processBlock(event);
+          console.log('Listening for next block event...');
         }
       });
+      console.log(`Subscribed to web socket url ${socketUrl}, listening for next block...`);
     } catch (error) {
       console.error('Could not connect to stacks node', error);
       throw error;
