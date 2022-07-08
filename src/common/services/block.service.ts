@@ -20,7 +20,7 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-const axiosOptions: AxiosRequestConfig = { timeout: 30000 };
+const axiosOptions: AxiosRequestConfig = { timeout: 1000 };
 
 export default class BlockService {
   public processBlock = async (block: StacksBlock): Promise<void> => {
@@ -102,15 +102,25 @@ export default class BlockService {
 
     for (let i = 1; i < totalBlocks; i++) {
       if (!arrBlockHeights.includes(i)) {
-        console.log(`Querying block height: ${i}`);
-        const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${i}`;
-        const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(
-          blockPath,
-          axiosOptions
-        );
-        const block: StacksBlock = result.data;
-        await this.processBlock(block);
+        const block = await this.fetchBlock(i);
+        if (block) this.processBlock(block);
       }
+    }
+  };
+
+  public fetchBlock = async (height: number): Promise<StacksBlock | undefined> => {
+    try {
+      console.log(`fetchBlock() Querying block height: ${height}`);
+      const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${height}`;
+      const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(
+        blockPath,
+        axiosOptions
+      );
+      const block: StacksBlock = result.data;
+
+      return block;
+    } catch (err) {
+      console.warn(`fetchBlock() height: ${height} failed`);
     }
   };
 }
