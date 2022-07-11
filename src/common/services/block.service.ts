@@ -22,7 +22,7 @@ type GetTransactionsResponse = {
 
 const RETRIES_PER_BLOCK = 2;
 
-const axiosOptions: AxiosRequestConfig = { timeout: 1000 };
+const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
 
 export default class BlockService {
   public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
