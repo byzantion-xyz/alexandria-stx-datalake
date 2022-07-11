@@ -3,7 +3,6 @@ import {
   connectWebSocketClient,
   StacksApiWebSocketClient
 } from '@stacks/blockchain-api-client';
-import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
 
