@@ -65,6 +65,10 @@ export default class BlockService {
       if (retry < RETRIES_PER_BLOCK) {
         retry++;
         await this.processBlock(block, retry);
+      } else {
+        console.warn(
+          `processBlock() height: ${block.height} failed. Maximum number of retries reached`
+        );
       }
     }
   };
@@ -135,6 +139,8 @@ export default class BlockService {
       if (retry < RETRIES_PER_BLOCK) {
         retry++;
         return await this.fetchBlock(height, retry);
+      } else {
+        console.warn(`fetchBlock() height: ${height} failed. Maximum number of retries reached`);
       }
     }
   };
