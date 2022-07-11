@@ -20,14 +20,19 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
+const RETRIES_PER_BLOCK = 2;
+
+const axiosOptions: AxiosRequestConfig = { timeout: 1000 };
 
 export default class BlockService {
-  public processBlock = async (block: StacksBlock): Promise<void> => {
+  public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
     try {
       const txsLength = block.txs.length;
       const querySize = 50;
-      console.log(`Processing block height: ${block.height} transactions: ${txsLength}`);
+      console.log(
+        `Processing block height: ${block.height} transactions: ${txsLength} ` +
+          `${retry > 0 ? 'retry: ' + retry : ''}`
+      );
 
       for (let i = 0; i < txsLength; i += querySize) {
         const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
@@ -57,6 +62,10 @@ export default class BlockService {
     } catch (err) {
       console.error(`Failed to process block height: ${block.height}`);
       console.error(err);
+      if (retry < RETRIES_PER_BLOCK) {
+        retry++;
+        await this.processBlock(block, retry);
+      }
     }
   };
 
@@ -100,17 +109,19 @@ export default class BlockService {
     const missingBlocks = totalBlocks - arrBlockHeights.length;
     console.log(`fetchHistoricalBlocks() Total blocks: ${totalBlocks}  Missing: ${missingBlocks}`);
 
-    for (let i = 1; i < totalBlocks; i++) {
+    for (let i = 1; i <= totalBlocks; i++) {
       if (!arrBlockHeights.includes(i)) {
         const block = await this.fetchBlock(i);
-        if (block) this.processBlock(block);
+        if (block) await this.processBlock(block);
       }
     }
   };
 
-  public fetchBlock = async (height: number): Promise<StacksBlock | undefined> => {
+  public fetchBlock = async (height: number, retry = 0): Promise<StacksBlock | undefined> => {
     try {
-      console.log(`fetchBlock() Querying block height: ${height}`);
+      console.log(
+        `fetchBlock() Querying block height: ${height} ${retry > 0 ? 'retry: ' + retry : ''}`
+      );
       const blockPath = `${appConfig.stacksNodeApiUrl}extended/v1/block/by_height/${height}`;
       const result: AxiosResponse = await axios.get<GetBlockByHeightRequest>(
         blockPath,
@@ -121,6 +132,10 @@ export default class BlockService {
       return block;
     } catch (err) {
       console.warn(`fetchBlock() height: ${height} failed`);
+      if (retry < RETRIES_PER_BLOCK) {
+        retry++;
+        return await this.fetchBlock(height, retry);
+      }
     }
   };
 }
