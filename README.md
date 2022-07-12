@@ -1,8 +1,4 @@
-# byx-stacks-txs-streamer
-
-Byzantion stacks transactions streamer
-
-# Stacks Data Lake
+# Alexandria Stacks Data Lake
 
 ## Overview
 
