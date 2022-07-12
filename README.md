@@ -1,20 +1,24 @@
-# Alexandria Stacks Data Lake
+# Alexandria STX Data Lake
 
 ## Overview
 
+The Alexandria Indexer is s system of layered services that index the data stored on the Stacks blockchain, equipping builders with transaction, event and NFT state data on which they can build their applications.
+
+The first layer of the Alexandria Indexer is the STX Data Lake. It streams raw transactions from the Stacks Node, extracting all on-chain transactions into the data lake database into the data lake schema, making the transactions available and more accessible for further indexing at a higher level, and enabling reindexing over time without the dependency of a Stacks Node.
+
 The Alexandria Stacks TX Data Lake consists of 2 key components:
 
-1. A PostgreSQL database that stores Stacks chain transaction data
-2. A streamer service that connects to a designated Stacks API Node and streams transactions into the database
+1. A PostgreSQL database that stores Stacks chain block and transaction data
+2. A streamer service that connects to a designated Stacks API Node and streams the data into the database
 
 ## Setup
 
-To setup the Data Lake and Streamer Service, follow these steps:
+To set up the Data Lake and Streamer Service, follow these steps:
 
 ### 1. Database
 
 - Ensure that you have a PostgreSQL database instance up and running
-- Create a database on your instance called stacks-data-lake-01 (or whatever name you want)
+- Create a database on your instance called stacks-data-lake-01 (or whatever name you choose)
 - Run the migration.sql script in your public schema inside your new database
 
 ### 2. Streamer Service
@@ -25,6 +29,7 @@ To setup the Data Lake and Streamer Service, follow these steps:
   - `DATABASE_URL=postgres://DB_USER:DB_USER_PW@DB_HOST/stacks-data-lake-01` (replace DB_USER, DB_USER_PW and DB_HOST placeholders with appropriate values)
   - `NODE_ENV=development`
   - `STACKS_NODE_API_URL=https://stacks-node-api.mainnet.stacks.co/` (this is the main stacks node API, replace the API URL if you are using an alternative)
+  - `STREAM_HISTORICAL_DATA=false` (data will stream immediatley from the tip of the chain, set this value to true if you want to also stream historical data)
 - To run the streamer in development mode: `yarn start:dev`
 - To run the streamer in prod mode: `yarn start:prod`
 
@@ -34,5 +39,6 @@ To setup the Data Lake and Streamer Service, follow these steps:
 - Set the following environment variables:
   - `DATABASE_URL=postgres://DB_USER:DB_USER_PW@DB_HOST/stacks-data-lake-01` (replace DB_USER, DB_USER_PW and DB_HOST placeholders with appropriate values)
   - `STACKS_NODE_API_URL=https://stacks-node-api.mainnet.stacks.co/` (this is the main stacks node API, replace the API URL if you are using an alternative)
+  - `STREAM_HISTORICAL_DATA=false` (data will stream immediatley from the tip of the chain, set this value to true if you want to also stream historical data)
 - Set the build command to `yarn build`
 - Set the start command to `yarn start:prod`
