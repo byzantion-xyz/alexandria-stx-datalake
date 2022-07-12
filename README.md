@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Alexandria Indexer is s system of layered services that index the data stored on the Stacks blockchain, equipping builders with transaction, event and NFT state data on which they can build their applications.
+The Alexandria Indexer is a system of layered services that index the data stored on the Stacks blockchain, equipping builders with transaction, event and NFT-state data on which they can build their applications.
 
 The first layer of the Alexandria Indexer is the STX Data Lake. It streams raw transactions from the Stacks Node, extracting all on-chain transactions into the data lake database into the data lake schema, making the transactions available and more accessible for further indexing at a higher level, and enabling reindexing over time without the dependency of a Stacks Node.
 
