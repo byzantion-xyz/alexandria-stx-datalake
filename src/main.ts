@@ -16,7 +16,7 @@ import { appConfig } from './common/config/app.config';
     await application.fetchHistoricalBlocks();
   } else {
     console.log(
-      'Historical data stream disabled. Set ENV variable STREAM_HISTORICAL_DATA=false to enable.'
+      'Historical data stream disabled. Set ENV variable STREAM_HISTORICAL_DATA=true to enable.'
     );
   }
 })();

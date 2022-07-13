@@ -13,7 +13,7 @@ The Alexandria Stacks TX Data Lake consists of 2 key components:
 
 ## Setup
 
-To set up the Data Lake and Streamer Service, follow these steps:
+To set up the Data Lake and Streamer Service, follow the steps below. You can also watch starlord walking you through the setup in the following video https://www.loom.com/share/2fa9279e8aa64e34bb4c128b77fbd204
 
 ### 1. Database
 
