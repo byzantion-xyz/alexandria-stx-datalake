@@ -100,6 +100,7 @@ export default class BlockService {
       }
     } catch (err) {
       console.error(err);
+      throw err;
     }
   };
 
