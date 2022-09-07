@@ -20,7 +20,7 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-const RETRIES_PER_BLOCK = 10;
+const RETRIES_PER_BLOCK = 2;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
@@ -71,7 +71,6 @@ export default class BlockService {
         console.warn(
           `processBlock() height: ${block.height} failed. Maximum number of retries reached`
         );
-        throw err;
       }
     }
   };
