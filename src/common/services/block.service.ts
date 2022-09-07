@@ -20,7 +20,7 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
-const RETRIES_PER_BLOCK = 2;
+const RETRIES_PER_BLOCK = 10;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
@@ -62,12 +62,12 @@ export default class BlockService {
       console.log(`Processed block height: ${block.height}`);
     } catch (err) {
       console.error(`Failed to process block height: ${block.height}`);
-      console.error(err);
       if (retry < RETRIES_PER_BLOCK) {
         retry++;
         await delay(2000);
         await this.processBlock(block, retry);
       } else {
+        console.error(err);
         console.warn(
           `processBlock() height: ${block.height} failed. Maximum number of retries reached`
         );
