@@ -10,7 +10,8 @@ import type {
   TransactionFound,
   TransactionList,
   BlockListResponse,
-  TransactionNotFound
+  TransactionNotFound,
+  AbstractTransaction
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
@@ -82,10 +83,10 @@ export default class BlockService {
 
       if (
         tx_result?.found &&
-        tx_result.result.tx_type === 'contract_call' &&
+        ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
         tx_result.result.tx_status === 'success'
       ) {
-        const tx: ContractCallTransaction = tx_result?.result;
+        const tx: AbstractTransaction = tx_result?.result;
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
