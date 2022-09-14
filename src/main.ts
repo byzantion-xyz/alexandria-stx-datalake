@@ -19,4 +19,8 @@ import { appConfig } from './common/config/app.config';
       'Historical data stream disabled. Set ENV variable STREAM_HISTORICAL_DATA=true to enable.'
     );
   }
+
+  // if (appConfig.fetchHistoricalSmartContracts) {
+  //   await application.fetchHistoricalSmartContracts();
+  // }
 })();
