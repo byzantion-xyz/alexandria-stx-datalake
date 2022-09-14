@@ -80,13 +80,14 @@ export default class BlockService {
 
       if (
         tx_result?.found &&
-        tx_result.result.tx_type === 'contract_call' &&
+        ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
         tx_result.result.tx_status === 'success'
       ) {
-        const tx: ContractCallTransaction = tx_result?.result;
+        const tx: any = tx_result?.result;
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
+        transaction.contract_id = tx[tx.tx_type].contract_id;
         tx_batch.push(transaction);
       }
     }
