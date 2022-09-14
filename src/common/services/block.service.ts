@@ -76,6 +76,50 @@ export default class BlockService {
     }
   };
 
+  public processHistoricSmartContractTxs = async (): Promise<void> => {
+    try {
+      let offset = 8000;
+      let limit = 200;
+      let tx_batch: Transaction[] = [];
+      while (true) {
+        const url = new URL(
+          `${appConfig.stacksNodeApiUrl}extended/v1/tx?type=smart_contract&limit=${limit}&offset=${offset}`
+        );
+        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
+          url.href,
+          axiosOptions
+        );
+
+        for (const tx of result.data.results) {
+          if (tx.tx_status === 'success') {
+            const transaction = new Transaction();
+            transaction.hash = tx.tx_id;
+            transaction.tx = JSON.parse(JSON.stringify(tx));
+            transaction.contract_id = tx[tx.tx_type].contract_id;
+            tx_batch.push(transaction);
+          }
+        }
+
+        try {
+          if (tx_batch.length) {
+            await AppDataSource.manager.save(tx_batch);
+            tx_batch = [];
+          } else {
+            break;
+          }
+        } catch (err) {
+          console.error(err);
+          throw err;
+        }
+
+        console.log(`[processHistoricSmartContractTxs] ${limit + offset} txs completed.`);
+        offset += limit;
+      }
+    } catch (err) {
+      console.error(`Failed to process historical smart_contract txs`);
+    }
+  };
+
   public processTransactions = async (txs: TransactionList): Promise<void> => {
     const tx_batch: Transaction[] = [];
     for (const tx_hash of Object.keys(txs)) {
@@ -86,10 +130,11 @@ export default class BlockService {
         ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
         tx_result.result.tx_status === 'success'
       ) {
-        const tx: AbstractTransaction = tx_result?.result;
+        const tx: any = tx_result?.result;
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
         transaction.tx = JSON.parse(JSON.stringify(tx));
+        transaction.contract_id = tx[tx.tx_type].contract_id;
         tx_batch.push(transaction);
       }
     }

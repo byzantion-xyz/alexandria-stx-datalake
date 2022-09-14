@@ -51,4 +51,17 @@ export default class Application {
       console.warn(err);
     }
   };
+
+  public fetchHistoricalSmartContracts = async (): Promise<void> => {
+    console.log('fetchHistoricalSmartContracts()');
+    try {
+      const blockService = new BlockService();
+
+      await blockService.processHistoricSmartContractTxs();
+      console.log('fetchHistoricalSmartContracts() completed');
+    } catch (err) {
+      console.warn('fetchHistoricalSmartContracts() failed');
+      console.warn(err);
+    }
+  };
 }
