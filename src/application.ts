@@ -5,6 +5,7 @@ import {
 } from '@stacks/blockchain-api-client';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
+import { appConfig } from './common/config/app.config';
 
 export default class Application {
   public connectDB = async (): Promise<void> => {
@@ -21,7 +22,7 @@ export default class Application {
     try {
       const blockService = new BlockService();
 
-      const socketUrl = 'wss://stacks-node-api.mainnet.stacks.co';
+      const socketUrl = appConfig.stacksWssUrl;
       const client: StacksApiWebSocketClient = await connectWebSocketClient(socketUrl);
 
       await client.subscribeBlocks(async (event: Block) => {

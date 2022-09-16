@@ -29,6 +29,7 @@ To set up the Data Lake and Streamer Service, follow the steps below. You can al
   - `DATABASE_URL=postgres://DB_USER:DB_USER_PW@DB_HOST/stacks-data-lake-01` (replace DB_USER, DB_USER_PW and DB_HOST placeholders with appropriate values)
   - `NODE_ENV=development`
   - `STACKS_NODE_API_URL=https://stacks-node-api.mainnet.stacks.co/` (this is the main stacks node API, replace the API URL if you are using an alternative)
+  - `STACKS_WSS_URL=wss://stacks-node-api.mainnet.stacks.co` (set this to point to the web socket endpoint to listen for new blocks)
   - `STREAM_HISTORICAL_DATA=false` (data will stream immediatley from the tip of the chain, set this value to true if you want to also stream historical data)
 - To run the streamer in development mode: `yarn start:dev`
 - To run the streamer in prod mode: `yarn start:prod`
@@ -39,6 +40,7 @@ To set up the Data Lake and Streamer Service, follow the steps below. You can al
 - Set the following environment variables:
   - `DATABASE_URL=postgres://DB_USER:DB_USER_PW@DB_HOST/stacks-data-lake-01` (replace DB_USER, DB_USER_PW and DB_HOST placeholders with appropriate values)
   - `STACKS_NODE_API_URL=https://stacks-node-api.mainnet.stacks.co/` (this is the main stacks node API, replace the API URL if you are using an alternative)
+  - `STACKS_WSS_URL=wss://stacks-node-api.mainnet.stacks.co` (set this to point to the web socket endpoint to listen for new blocks)
   - `STREAM_HISTORICAL_DATA=false` (data will stream immediatley from the tip of the chain, set this value to true if you want to also stream historical data)
 - Set the build command to `yarn build`
 - Set the start command to `yarn start:prod`
