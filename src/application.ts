@@ -28,7 +28,7 @@ export default class Application {
       await client.subscribeBlocks(async (event: Block) => {
         if (event.canonical) {
           console.log(event);
-          await blockService.processBlock(event);
+          await blockService.processTipBlock(event);
           console.log('Listening for next block event...');
         }
       });
@@ -51,6 +51,18 @@ export default class Application {
       console.warn(err);
     }
   };
+
+  // public reprocessPastBlocks = async (): Promise<void> => {
+  //   console.log('reprocessPastBlocks()');
+  //   try {
+  //     const blockService = new BlockService();
+  //     await blockService.reprocessPastBlocks();
+  //     console.log('reprocessPastBlocks() completed');
+  //   } catch (err) {
+  //     console.warn('reprocessPastBlocks() failed');
+  //     console.warn(err);
+  //   }
+  // };
 
   public fetchHistoricalSmartContracts = async (): Promise<void> => {
     console.log('fetchHistoricalSmartContracts()');
