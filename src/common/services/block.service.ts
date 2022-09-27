@@ -27,6 +27,17 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
 
 export default class BlockService {
+  public processTipBlock = async (block: StacksBlock): Promise<void> => {
+    await this.processBlock(block);
+    const previousBlocks: number[] = [
+      block.height - 4,
+      block.height - 3,
+      block.height - 2,
+      block.height - 1
+    ];
+    await this.reprocessPastBlocks(previousBlocks);
+  };
+
   public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
     try {
       const txsLength = block.txs.length;
@@ -49,7 +60,7 @@ export default class BlockService {
         );
         const txs: TransactionList = result.data;
 
-        await this.processTransactions(txs);
+        await this.processTransactions(txs, block.height);
       }
 
       const newBlock: Block = new Block();
@@ -63,6 +74,7 @@ export default class BlockService {
       console.log(`Processed block height: ${block.height}`);
     } catch (err) {
       console.error(`Failed to process block height: ${block.height}`);
+      // console.error(err);
       if (retry < RETRIES_PER_BLOCK) {
         retry++;
         await delay(2000);
@@ -120,7 +132,7 @@ export default class BlockService {
     }
   };
 
-  public processTransactions = async (txs: TransactionList): Promise<void> => {
+  public processTransactions = async (txs: TransactionList, blockHeight: number): Promise<void> => {
     const tx_batch: Transaction[] = [];
     for (const tx_hash of Object.keys(txs)) {
       const tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
@@ -143,6 +155,7 @@ export default class BlockService {
       if (tx_batch.length) {
         await AppDataSource.manager.save(tx_batch);
       }
+      console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}`);
     } catch (err) {
       console.error(err);
       throw err;
@@ -165,6 +178,17 @@ export default class BlockService {
     for (let i = 1; i <= totalBlocks; i++) {
       if (!arrBlockHeights.includes(i)) {
         const block = await this.fetchBlock(i);
+        if (block) await this.processBlock(block);
+      }
+    }
+  };
+
+  public reprocessPastBlocks = async (blocks: Array<number>): Promise<void> => {
+    if (blocks) {
+      console.log(`reprocessPastBlocks() Reprocessing ${blocks.length} blocks`);
+      for (const blockNum of blocks) {
+        await AppDataSource.manager.delete(Block, { height: blockNum });
+        const block = await this.fetchBlock(blockNum);
         if (block) await this.processBlock(block);
       }
     }
