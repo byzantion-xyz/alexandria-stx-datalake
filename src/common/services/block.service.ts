@@ -36,6 +36,9 @@ export default class BlockService {
       block.height - 1
     ];
     await this.reprocessPastBlocks(previousBlocks);
+    console.log(
+      `COMPLETED processing block ${block.height} -- including ${previousBlocks.length} previous blocks.`
+    );
   };
 
   public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
