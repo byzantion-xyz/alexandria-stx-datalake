@@ -6,12 +6,10 @@ import { Block } from '../../database/entities/Block';
 
 import type {
   Block as StacksBlock,
-  ContractCallTransaction,
   TransactionFound,
   TransactionList,
   BlockListResponse,
-  TransactionNotFound,
-  AbstractTransaction
+  TransactionNotFound
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
