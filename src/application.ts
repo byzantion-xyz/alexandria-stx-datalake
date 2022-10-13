@@ -33,6 +33,12 @@ export default class Application {
         }
       });
       console.log(`Subscribed to web socket url ${socketUrl}, listening for next block...`);
+
+      await client.subscribeMicroblocks((event) => {
+        if (event.canonical) {
+          console.debug(`Microblock ${event.block_height} with transactions: ${event.txs?.length}`);
+        }
+      });
     } catch (error) {
       console.error('Could not connect to stacks node', error);
       throw error;
