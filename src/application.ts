@@ -1,8 +1,5 @@
-import {
-  Block,
-  connectWebSocketClient,
-  StacksApiWebSocketClient
-} from '@stacks/blockchain-api-client';
+import { connectWebSocketClient, StacksApiWebSocketClient } from '@stacks/blockchain-api-client';
+import { Block } from '@stacks/stacks-blockchain-api-types';
 import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
