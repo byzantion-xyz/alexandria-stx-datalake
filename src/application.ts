@@ -1,5 +1,5 @@
 import { connectWebSocketClient, StacksApiWebSocketClient } from '@stacks/blockchain-api-client';
-import { Block } from '@stacks/stacks-blockchain-api-types';
+import { Block, Transaction } from '@stacks/stacks-blockchain-api-types';
 import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
@@ -31,9 +31,9 @@ export default class Application {
       });
       console.log(`Subscribed to web socket url ${socketUrl}, listening for next block...`);
 
-      await client.subscribeMicroblocks((event) => {
+      client.subscribeMempool((event: Transaction) => {
         if (event.canonical) {
-          console.debug(`Microblock ${event.block_height} with transactions: ${event.txs?.length}`);
+          console.log(`Transaction ${event.tx_id} added to mempool`);
         }
       });
     } catch (error) {
