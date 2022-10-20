@@ -143,7 +143,8 @@ export default class BlockService {
       if (
         tx_result?.found &&
         ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
-        tx_result.result.tx_status === 'success'
+        tx_result.result.tx_status === 'success' &&
+        tx_result.result.canonical
       ) {
         const tx: any = tx_result?.result;
         const transaction = new Transaction();
