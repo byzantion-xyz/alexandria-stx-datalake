@@ -1,8 +1,5 @@
-import {
-  Block,
-  connectWebSocketClient,
-  StacksApiWebSocketClient
-} from '@stacks/blockchain-api-client';
+import { connectWebSocketClient, StacksApiWebSocketClient } from '@stacks/blockchain-api-client';
+import { Block, Transaction } from '@stacks/stacks-blockchain-api-types';
 import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
@@ -33,6 +30,12 @@ export default class Application {
         }
       });
       console.log(`Subscribed to web socket url ${socketUrl}, listening for next block...`);
+
+      client.subscribeMempool((event: Transaction) => {
+        if (event.canonical) {
+          console.log(`Transaction ${event.tx_id} added to mempool`);
+        }
+      });
     } catch (error) {
       console.error('Could not connect to stacks node', error);
       throw error;

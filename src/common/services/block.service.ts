@@ -6,12 +6,10 @@ import { Block } from '../../database/entities/Block';
 
 import type {
   Block as StacksBlock,
-  ContractCallTransaction,
   TransactionFound,
   TransactionList,
   BlockListResponse,
-  TransactionNotFound,
-  AbstractTransaction
+  TransactionNotFound
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
@@ -94,7 +92,7 @@ export default class BlockService {
   public processHistoricSmartContractTxs = async (): Promise<void> => {
     try {
       let offset = 8000;
-      let limit = 200;
+      const limit = 200;
       let tx_batch: Transaction[] = [];
       while (true) {
         const url = new URL(
