@@ -55,8 +55,6 @@ export default class BlockService {
           url.searchParams.append('tx_id', tx_hash);
         }
 
-        url.searchParams.append('event_limit', '1024');
-
         const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
           url.href,
           axiosOptions
