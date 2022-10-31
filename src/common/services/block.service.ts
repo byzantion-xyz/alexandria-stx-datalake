@@ -147,7 +147,7 @@ export default class BlockService {
 
   public fetchTransactionEvents = async (hash: string): Promise<TransactionEvent[]> => {
     try {
-      const events: TransactionEvent[] = [];
+      let events: TransactionEvent[] = [];
       let offset = 0;
       const limit = 100;
 
@@ -165,6 +165,8 @@ export default class BlockService {
 
         offset += limit;
       }
+
+      events = events.sort((a, b) => a.event_index - b.event_index);
 
       return events;
     } catch (err) {
