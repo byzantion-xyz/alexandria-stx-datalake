@@ -9,7 +9,8 @@ import type {
   TransactionFound,
   TransactionList,
   BlockListResponse,
-  TransactionNotFound
+  TransactionNotFound,
+  TransactionEvent
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
@@ -19,7 +20,12 @@ type GetTransactionsResponse = {
   data: TransactionList;
 };
 
+type GetEventsResponse = {
+  data: TransactionEvent[];
+};
+
 const RETRIES_PER_BLOCK = 10;
+const EVENT_LIMIT_DEFAULT = 96;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
@@ -104,10 +110,15 @@ export default class BlockService {
         );
 
         for (const tx of result.data.results) {
-          if (tx.tx_status === 'success') {
+          if (tx.tx_status === 'success' && tx.canonical) {
+            const txJSON = JSON.parse(JSON.stringify(tx));
+            if (tx.event_count > EVENT_LIMIT_DEFAULT) {
+              txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
+            }
+
             const transaction = new Transaction();
             transaction.hash = tx.tx_id;
-            transaction.tx = JSON.parse(JSON.stringify(tx));
+            transaction.tx = txJSON;
             transaction.contract_id = tx[tx.tx_type].contract_id;
             tx_batch.push(transaction);
           }
@@ -117,11 +128,12 @@ export default class BlockService {
           if (tx_batch.length) {
             await AppDataSource.manager.save(tx_batch);
             tx_batch = [];
-          } else {
+          }
+
+          if (!result.data?.results || !result.data.results.length) {
             break;
           }
         } catch (err) {
-          console.error(err);
           throw err;
         }
 
@@ -130,6 +142,36 @@ export default class BlockService {
       }
     } catch (err) {
       console.error(`Failed to process historical smart_contract txs`);
+    }
+  };
+
+  public fetchTransactionEvents = async (hash: string): Promise<TransactionEvent[]> => {
+    try {
+      let events: TransactionEvent[] = [];
+      let offset = 0;
+      const limit = 100;
+
+      while (true) {
+        const url = new URL(
+          `${appConfig.stacksNodeApiUrl}extended/v1/tx/events?tx_id=${hash}&limit=${limit}&offset=${offset}`
+        );
+        const result: AxiosResponse = await axios.get<GetEventsResponse>(url.href, axiosOptions);
+
+        if (!result.data?.events || !result.data.events.length) {
+          break;
+        } else {
+          events.push(...result.data.events);
+        }
+
+        offset += limit;
+      }
+
+      events = events.sort((a, b) => a.event_index - b.event_index);
+
+      return events;
+    } catch (err) {
+      console.error(`Failed to fetch events for transaction`);
+      throw err;
     }
   };
 
@@ -145,9 +187,14 @@ export default class BlockService {
         tx_result.result.canonical
       ) {
         const tx: any = tx_result?.result;
+        const txJSON = JSON.parse(JSON.stringify(tx));
+        if (tx.event_count > EVENT_LIMIT_DEFAULT) {
+          txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
+        }
+
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
-        transaction.tx = JSON.parse(JSON.stringify(tx));
+        transaction.tx = txJSON;
         transaction.contract_id = tx[tx.tx_type].contract_id;
         tx_batch.push(transaction);
       }
