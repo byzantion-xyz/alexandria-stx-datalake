@@ -194,7 +194,8 @@ export default class BlockService {
 
         const transaction = new Transaction();
         transaction.hash = tx.tx_id;
-        transaction.tx = transaction.contract_id = tx[tx.tx_type].contract_id;
+        transaction.tx = txJSON;
+        transaction.contract_id = tx[tx.tx_type].contract_id;
         tx_batch.push(transaction);
       }
     }
