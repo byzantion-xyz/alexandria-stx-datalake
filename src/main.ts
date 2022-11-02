@@ -6,17 +6,21 @@ import Application from './application';
 import { appConfig } from './common/config/app.config';
 
 (async () => {
-  const application = new Application();
+  try {
+    const application = new Application();
 
-  await application.connectDB();
+    await application.connectDB();
 
-  await application.socketSubscription();
+    await application.socketSubscription();
 
-  if (appConfig.streamHistoricalData) {
-    await application.fetchHistoricalBlocks();
-  } else {
-    console.log(
-      'Historical data stream disabled. Set ENV variable STREAM_HISTORICAL_DATA=true to enable.'
-    );
+    if (appConfig.streamHistoricalData) {
+      await application.fetchHistoricalBlocks();
+    } else {
+      console.log(
+        'Historical data stream disabled. Set ENV variable STREAM_HISTORICAL_DATA=true to enable.'
+      );
+    }
+  } catch (err) {
+    console.error(err);
   }
 })();
