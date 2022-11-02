@@ -1,8 +1,5 @@
-import {
-  Block,
-  connectWebSocketClient,
-  StacksApiWebSocketClient
-} from '@stacks/blockchain-api-client';
+import { connectWebSocketClient, StacksApiWebSocketClient } from '@stacks/blockchain-api-client';
+import { Block, Transaction } from '@stacks/stacks-blockchain-api-types';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
 import { appConfig } from './common/config/app.config';
@@ -28,11 +25,17 @@ export default class Application {
       await client.subscribeBlocks(async (event: Block) => {
         if (event.canonical) {
           console.log(event);
-          await blockService.processBlock(event);
+          await blockService.processTipBlock(event);
           console.log('Listening for next block event...');
         }
       });
       console.log(`Subscribed to web socket url ${socketUrl}, listening for next block...`);
+
+      client.subscribeMempool((event: Transaction) => {
+        if (event.canonical) {
+          console.log(`Transaction ${event.tx_id} added to mempool`);
+        }
+      });
     } catch (error) {
       console.error('Could not connect to stacks node', error);
       throw error;
@@ -48,6 +51,31 @@ export default class Application {
       console.log('fetchHistoricalBlocks() completed');
     } catch (err) {
       console.warn('fetchHistoricalBlocks() failed');
+      console.warn(err);
+    }
+  };
+
+  // public reprocessPastBlocks = async (): Promise<void> => {
+  //   console.log('reprocessPastBlocks()');
+  //   try {
+  //     const blockService = new BlockService();
+  //     await blockService.reprocessPastBlocks();
+  //     console.log('reprocessPastBlocks() completed');
+  //   } catch (err) {
+  //     console.warn('reprocessPastBlocks() failed');
+  //     console.warn(err);
+  //   }
+  // };
+
+  public fetchHistoricalSmartContracts = async (): Promise<void> => {
+    console.log('fetchHistoricalSmartContracts()');
+    try {
+      const blockService = new BlockService();
+
+      await blockService.processHistoricSmartContractTxs();
+      console.log('fetchHistoricalSmartContracts() completed');
+    } catch (err) {
+      console.warn('fetchHistoricalSmartContracts() failed');
       console.warn(err);
     }
   };

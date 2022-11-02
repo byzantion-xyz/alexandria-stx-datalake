@@ -8,6 +8,7 @@
     "clean": "tsc --build --clean",
     "start:dev": "ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
+    "start:debug": "ts-node-dev --transpile-only --respawn --inspect --project tsconfig.json src/main.ts",
     "start:prod": "env NODE_ENV=production node dist/main",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
