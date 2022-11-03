@@ -3,6 +3,7 @@ import { Block, Transaction } from '@stacks/stacks-blockchain-api-types';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
 import { appConfig } from './common/config/app.config';
+import { Migration } from 'typeorm';
 
 export default class Application {
   public connectDB = async (): Promise<void> => {
@@ -12,6 +13,15 @@ export default class Application {
     } catch (error) {
       console.error('Could not connect to the database', error);
       throw error;
+    }
+  };
+
+  public runMigrations = async (): Promise<Migration[]> => {
+    try {
+      return await AppDataSource.runMigrations();
+    } catch (err) {
+      console.error('Run migrations failed. Processing stopped.');
+      process.exit(1);
     }
   };
 
