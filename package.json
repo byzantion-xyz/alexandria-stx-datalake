@@ -9,7 +9,7 @@
     "start:dev": "yarn m:run && ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
     "start:debug": "ts-node-dev --transpile-only --respawn --inspect --project tsconfig.json src/main.ts",
-    "start:prod": "yarn m:run && env NODE_ENV=production node dist/main",
+    "start:prod": "env NODE_ENV=production node dist/main",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",

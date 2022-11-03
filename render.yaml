@@ -1,9 +1,9 @@
 services:
-  - type: web
+  - type: worker
     name: alexandria-data-lake-svc
     env: node
     region: oregon
-    plan: free
+    plan: starter
     branch: blueprint
     buildCommand: yarn && yarn build
     startCommand: yarn m:run && yarn start:prod
