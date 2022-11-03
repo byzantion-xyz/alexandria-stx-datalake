@@ -4,7 +4,6 @@ services:
     env: node
     region: oregon
     plan: starter
-    branch: blueprint
     buildCommand: yarn && yarn build
     startCommand: yarn start:prod
     autoDeploy: false
