@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "typeorm": "nest build && typeorm-ts-node-esm -d ./dist/database/data-source.js",
+    "typeorm": "typeorm-ts-node-esm -d ./dist/database/data-source.js",
     "m:gen": "yarn typeorm migration:generate",
     "m:run": "yarn typeorm migration:run",
     "m:create": "typeorm-ts-node-esm migration:create",
