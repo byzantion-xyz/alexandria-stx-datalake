@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     buildCommand: yarn; yarn build
-    startCommand: yarn start:prod
+    startCommand: yarn m:run && yarn start:prod
     autoDeploy: false
     envVars:
       - key: STREAM_HISTORICAL_DATA
