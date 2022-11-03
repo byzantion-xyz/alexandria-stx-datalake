@@ -44,3 +44,13 @@ To set up the Data Lake and Streamer Service, follow the steps below. You can al
   - `STREAM_HISTORICAL_DATA=false` (data will stream immediatley from the tip of the chain, set this value to true if you want to also stream historical data)
 - Set the build command to `yarn build`
 - Set the start command to `yarn start:prod`
+
+**Render auto-deploy**
+
+This option makes it possible to deploy an instance inside a hosted [render.com](https://render.com) service.
+
+To get started, you need to [register for a render account](https://dashboard.render.com/register) and get familiar with the [documentation for render](https://render.com/docs).
+
+Once you've registered, hit this big blue button:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/byzantion-xyz/alexandria-stx-datalake&branch=blueprint)
