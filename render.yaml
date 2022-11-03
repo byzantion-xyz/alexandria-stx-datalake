@@ -3,7 +3,7 @@ services:
     name: alexandria-data-lake-svc
     env: node
     region: oregon
-    plan: starter
+    plan: free
     branch: blueprint
     buildCommand: yarn; yarn build
     startCommand: yarn start:prod
