@@ -4,7 +4,8 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: yarn; yarn build
+    branch: blueprint
+    buildCommand: yarn && yarn build
     startCommand: yarn m:run && yarn start:prod
     autoDeploy: false
     envVars:
