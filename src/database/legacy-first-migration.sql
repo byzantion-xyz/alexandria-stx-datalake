@@ -1,6 +1,6 @@
 
 -- CreateTable
-CREATE TABLE public."transaction" (
+CREATE TABLE IF NOT EXISTS public."transaction" (
 	hash varchar NOT NULL,
 	tx jsonb NOT NULL,
 	processed bool NOT NULL DEFAULT false,
@@ -12,7 +12,7 @@ CREATE TABLE public."transaction" (
 	CONSTRAINT "transaction_pkey" PRIMARY KEY (hash)
 );
 
-CREATE TABLE public.block (
+CREATE TABLE IF NOT EXISTS public.block (
 	hash varchar NOT NULL,
 	height int8 NOT NULL,
 	"timestamp" timestamp NOT NULL,
@@ -24,8 +24,8 @@ CREATE TABLE public.block (
 
 
 /* Create indexes for jsonb generated colums */
-CREATE INDEX transaction_block_height ON public.transaction USING btree (block_height);
-CREATE INDEX transaction_contract_id ON public.transaction USING btree (contract_id);
+CREATE INDEX IF NOT EXISTS transaction_block_height ON public.transaction USING btree (block_height);
+CREATE INDEX IF NOT EXISTS transaction_contract_id ON public.transaction USING btree (contract_id);
 
 /* Create function to notify upon block saved */
 CREATE OR REPLACE FUNCTION public.notify_block()
@@ -41,7 +41,7 @@ $function$
 ;
 
 /* Add trigger to notify events */
-create trigger notify_blocks after
+CREATE OR REPLACE trigger notify_blocks after
 insert
     on
     public.block for each row execute function notify_block();

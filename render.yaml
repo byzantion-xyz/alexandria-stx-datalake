@@ -6,7 +6,7 @@ services:
     plan: starter
     branch: main
     buildCommand: yarn build
-    startCommand: yarn start:prod
+    startCommand: yarn m:run; yarn start:prod
     autoDeploy: false
     envVars:
       - key: STREAM_HISTORICAL_DATA
