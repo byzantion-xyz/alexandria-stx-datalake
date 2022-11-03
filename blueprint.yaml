@@ -1,0 +1,22 @@
+services:
+  - type: worker
+    name: alexandria-data-lake-svc
+    env: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: yarn build
+    startCommand: yarn start:prod
+    autoDeploy: false
+    envVars:
+      - key: STREAM_HISTORICAL_DATA
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: alexandria-data-lake-db
+          property: connectionString
+
+databases:
+  - name: alexandria-data-lake-db
+    plan: starter
+    ipAllowList: []
