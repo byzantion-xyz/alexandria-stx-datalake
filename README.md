@@ -54,3 +54,5 @@ To get started, you need to [register for a render account](https://dashboard.re
 Once you've registered, hit this big blue button:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/byzantion-xyz/alexandria-stx-datalake&branch=blueprint)
+
+Important! Please note that this deployment users the paid starter plan for the background worker service and the free plan for the database (you can upgrade as your needs require). You will need a payment method in place to complete this deployment. Check the Render pricing for pricing information.

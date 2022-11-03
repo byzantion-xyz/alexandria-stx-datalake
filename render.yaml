@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: alexandria-data-lake-svc
     env: node
     region: oregon
@@ -20,5 +20,5 @@ services:
 
 databases:
   - name: alexandria-data-lake-db
-    plan: starter
+    plan: free
     ipAllowList: []
