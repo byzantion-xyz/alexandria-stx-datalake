@@ -55,4 +55,4 @@ Once you've registered, hit this big blue button:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/byzantion-xyz/alexandria-stx-datalake&branch=main)
 
-Important! Please note that this deployment users the free plans for the web service and database (you can upgrade as your needs require). Check the Render pricing for pricing information.
+Important! Please note that this deployment uses the free plan for the database and the paid starter plan for the background worker server (you can upgrade as your needs require) and requires that you have payment details added to your account. Check the Render pricing for pricing information.

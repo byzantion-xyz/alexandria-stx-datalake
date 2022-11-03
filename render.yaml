@@ -1,10 +1,10 @@
 services:
-  - type: web
+  - type: worker
     name: alexandria-data-lake-svc
     env: node
     region: oregon
-    plan: free
-    buildCommand: yarn; yarn build
+    plan: starter
+    buildCommand: yarn && yarn build
     startCommand: yarn start:prod
     autoDeploy: false
     envVars:
