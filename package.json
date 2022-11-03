@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "",
   "scripts": {
-    "build": "yarn && tsc --build",
+    "build": "yarn && tsc --build && yarn m:run",
     "clean": "tsc --build --clean",
     "start:dev": "ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
