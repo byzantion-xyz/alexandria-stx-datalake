@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "",
   "scripts": {
-    "build": "yarn && tsc --build",
+    "build": "yarn && tsc --build && yarn m:run",
     "clean": "tsc --build --clean",
     "start:dev": "ts-node src/main.ts",
     "start:dev:watch": "ts-node-dev --respawn src/main.ts",
@@ -12,7 +12,12 @@
     "start:prod": "env NODE_ENV=production node dist/main",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --fix",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "typeorm": "typeorm-ts-node-esm -d ./dist/database/data-source.js",
+    "m:gen": "yarn typeorm migration:generate",
+    "m:run": "yarn typeorm migration:run",
+    "m:create": "typeorm-ts-node-esm migration:create",
+    "m:revert": "yarn typeorm migration:revert"
   },
   "dependencies": {
     "@stacks/blockchain-api-client": "^4.0.4",

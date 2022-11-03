@@ -8,9 +8,7 @@ import { appConfig } from './common/config/app.config';
 (async () => {
   try {
     const application = new Application();
-
     await application.connectDB();
-
     await application.socketSubscription();
 
     if (appConfig.streamHistoricalData) {
