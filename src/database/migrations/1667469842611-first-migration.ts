@@ -9,12 +9,14 @@ export class firstMigration1667469842611 implements MigrationInterface {
                 tx jsonb NOT NULL,
                 processed bool NOT NULL DEFAULT false,
                 missing bool NOT NULL DEFAULT false,
-                contract_id text NULL,
                 /* JSONB generated columns */
-                block_height int8 NULL GENERATED ALWAYS AS ((tx -> 'block_height'::text)::bigint) STORED,
+                contract_id text NULL GENERATED ALWAYS AS ((tx -> 'contract_call'::text) ->> 'contract_id'::text) STORED,
+                block_height int8 NULL GENERATED ALWAYS AS ((tx -> 'block_height'::text)::bigint) STORED,                
 
                 CONSTRAINT "transaction_pkey" PRIMARY KEY (hash)
             );
+
+            ALTER TABLE transaction ALTER COLUMN contract_id DROP EXPRESSION;
 
             CREATE TABLE IF NOT EXISTS public.block (
                 hash varchar NOT NULL,
