@@ -17,7 +17,7 @@
     "m:gen": "yarn typeorm migration:generate",
     "m:run": "yarn typeorm migration:run",
     "m:create": "typeorm-ts-node-esm migration:create",
-    "m:revert": "yarn typeorm migration:revert",
+    "m:revert": "yarn build && yarn typeorm migration:revert",
     "m:show": "yarn typeorm migration:show"
   },
   "dependencies": {
