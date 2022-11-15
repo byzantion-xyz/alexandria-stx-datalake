@@ -14,7 +14,8 @@ import { appConfig } from './common/config/app.config';
     await application.socketSubscription();
 
     if (appConfig.enableMissingBlocksTimer) {
-      await application.setTimerToCheckRecentBlock();
+      await application.processMostRecentBlockIfIncomplete();
+      await application.setTimerToCheckMostRecentBlock();
     }
 
     if (appConfig.streamHistoricalData) {

@@ -9,6 +9,6 @@ export const appConfig = {
   streamHistoricalData: process.env.STREAM_HISTORICAL_DATA === 'true' || false,
   enableMissingBlocksTimer: process.env.ENABLE_MISSING_BLOCKS_TIMER === 'true' || false,
   fetchHistoricalSmartContracts: true,
-  missingBlocksTimerInMs: 5 * 60 * 1000,
+  missingBlocksTimerInMs: 1 * 60 * 1000,
   pastBlocksToProcess1: [76922]
 };
