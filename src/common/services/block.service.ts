@@ -51,7 +51,7 @@ export default class BlockService {
       const querySize = 50;
       console.log(
         `Processing block height: ${block.height} transactions: ${txsLength} ` +
-          `${retry > 0 ? 'retry: ' + retry : ''}`
+        `${retry > 0 ? 'retry: ' + retry : ''}`
       );
 
       for (let i = 0; i < txsLength; i += querySize) {
@@ -212,7 +212,7 @@ export default class BlockService {
   };
 
 
-  public fetchBlocksStatus = async (retry = 0): Promise<BlockListResponse | undefined> => {
+  public fetchBlocksStatus = async (retry = 0): Promise<BlockListResponse> => {
     try {
       const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
       const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
@@ -227,6 +227,7 @@ export default class BlockService {
         return await this.fetchBlocksStatus(retry);
       } else {
         console.warn(`fetchBlockStatus() failed. Maximum number of retries reached`);
+        throw err;
       }
     }
 
@@ -285,4 +286,20 @@ export default class BlockService {
       }
     }
   };
+
+  public checkRecentBlockStatus = async (): Promise<void> => {
+    const blockList = await this.fetchBlocksStatus();
+    const recentBlockHeight = blockList.total;
+
+    const block = await AppDataSource.manager.query(
+      `select * from block where height = ${recentBlockHeight}`
+    );
+
+    if (!block || block.height < recentBlockHeight) {
+      const block = await this.fetchBlock(recentBlockHeight);
+      if (block) {
+        await this.processTipBlock(block);
+      }
+    }
+  }
 }

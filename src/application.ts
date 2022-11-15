@@ -80,4 +80,18 @@ export default class Application {
       console.warn(err);
     }
   };
+
+  public setTimerToCheckRecentBlock = async (): Promise<void> => {
+    console.log('checkLastBlockIsProcessed()');
+    try {
+      const blockService = new BlockService();
+
+      setInterval(_ => blockService.checkRecentBlockStatus(), appConfig.missingBlocksTimer * 1000);
+
+      console.log('setTimerToCheckRecentBlock() completed');
+    } catch (err) {
+      console.warn('checkLastBlockIsProcessed() failed');
+      console.warn(err);
+    }
+  };
 }
