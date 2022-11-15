@@ -67,21 +67,20 @@ export default class BlockService {
         axiosOptions
       );
 
-      if (result.data.length) {
-        const txList: TransactionList = result.data;
+      const txList: TransactionList = result.data;
 
-        for (const tx_hash of Object.keys(txList)) {
-          const tx_result: TransactionFound | TransactionNotFound | undefined = txList[tx_hash];
-          if (tx_result &&
-            tx_result.found &&
-            (tx_result.result.tx_type === 'contract_call' || tx_result.result.tx_type === 'smart_contract') &&
-            tx_result.result.tx_status === 'success' &&
-            tx_result.result.canonical
-          ) {
-            txs.push(tx_result.result);
-          }
+      for (const tx_hash of Object.keys(txList)) {
+        const tx_result: TransactionFound | TransactionNotFound | undefined = txList[tx_hash];
+        if (tx_result &&
+          tx_result.found &&
+          (tx_result.result.tx_type === 'contract_call' || tx_result.result.tx_type === 'smart_contract') &&
+          tx_result.result.tx_status === 'success' &&
+          tx_result.result.canonical
+        ) {
+          txs.push(tx_result.result);
         }
       }
+
     }
 
     return txs;
@@ -202,11 +201,13 @@ export default class BlockService {
   };
 
   public processTransactions = async (txs: StacksTransaction[], blockHeight: number): Promise<void> => {
-    const tx_batch: Transaction[] = [];
+    console.log('processTransaction() transactions: ', txs.length);
+    let tx_batch: Transaction[] = [];
 
-    for (let i = 0; i < txs.length; i += TX_BATCH_SIZE) {
+    for (let i = 0; i < txs.length; i++) {
       const tx = txs[i];
       const txJSON = JSON.parse(JSON.stringify(tx));
+
       if (tx.event_count > EVENT_LIMIT_DEFAULT) {
         txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
       }
@@ -220,18 +221,18 @@ export default class BlockService {
 
       tx_batch.push(transaction);
 
-      try {
-        if (tx_batch.length) {
-          await AppDataSource.manager.save(tx_batch);
-        }
-        console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}`);
-      } catch (err) {
-        console.error(err);
-        throw err;
+      if (tx_batch.length === TX_BATCH_SIZE) {
+        await AppDataSource.manager.save(tx_batch);
+        console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}/${txs.length}`);
+        tx_batch = [];
       }
     }
-  };
 
+    if (tx_batch.length) {
+      await AppDataSource.manager.save(tx_batch);
+      console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}/${txs.length}`);
+    }
+  };
 
   public fetchBlocksStatus = async (retry = 0): Promise<BlockListResponse> => {
     try {
