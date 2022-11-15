@@ -4,13 +4,17 @@ import axios from 'axios';
 import { Transaction } from '../../database/entities/Transaction';
 import { Block } from '../../database/entities/Block';
 
+type StacksTransaction = SmartContractTransaction | ContractCallTransaction;
+
 import type {
   Block as StacksBlock,
   TransactionFound,
   TransactionList,
   BlockListResponse,
   TransactionNotFound,
-  TransactionEvent
+  TransactionEvent,
+  SmartContractTransaction,
+  ContractCallTransaction
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
@@ -26,6 +30,7 @@ type GetEventsResponse = {
 
 const RETRIES_PER_BLOCK = 10;
 const EVENT_LIMIT_DEFAULT = 96;
+const TX_BATCH_SIZE = 50;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
@@ -45,30 +50,51 @@ export default class BlockService {
     );
   };
 
-  public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
-    try {
-      const txsLength = block.txs.length;
-      const querySize = 50;
-      console.log(
-        `Processing block height: ${block.height} transactions: ${txsLength} ` +
-        `${retry > 0 ? 'retry: ' + retry : ''}`
+  public fetchBlockTransactions = async (block: StacksBlock): Promise<StacksTransaction[]> => {
+    const txs: StacksTransaction[] = [];
+    const txsLength = block.txs.length;
+    const querySize = 50;
+
+    for (let i = 0; i < txsLength; i += querySize) {
+      const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
+
+      for (const tx_hash of block.txs.slice(i, i + querySize)) {
+        url.searchParams.append('tx_id', tx_hash);
+      }
+
+      const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
+        url.href,
+        axiosOptions
       );
 
-      for (let i = 0; i < txsLength; i += querySize) {
-        const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
+      if (result.data.length) {
+        const txList: TransactionList = result.data;
 
-        for (const tx_hash of block.txs.slice(i, i + querySize)) {
-          url.searchParams.append('tx_id', tx_hash);
+        for (const tx_hash of Object.keys(txList)) {
+          const tx_result: TransactionFound | TransactionNotFound | undefined = txList[tx_hash];
+          if (tx_result &&
+            tx_result.found &&
+            (tx_result.result.tx_type === 'contract_call' || tx_result.result.tx_type === 'smart_contract') &&
+            tx_result.result.tx_status === 'success' &&
+            tx_result.result.canonical
+          ) {
+            txs.push(tx_result.result);
+          }
         }
-
-        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
-          url.href,
-          axiosOptions
-        );
-        const txs: TransactionList = result.data;
-
-        await this.processTransactions(txs, block.height);
       }
+    }
+
+    return txs;
+  }
+
+  public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
+    try {
+      console.log(
+        `Processing block height: ${block.height} transactions: ${block.txs.length} ` +
+        `${retry > 0 ? 'retry: ' + retry : ''}`
+      );
+      const txs = await this.fetchBlockTransactions(block);
+      await this.processTransactions(txs, block.height);
 
       const newBlock: Block = new Block();
       newBlock.hash = block.hash;
@@ -175,39 +201,34 @@ export default class BlockService {
     }
   };
 
-  public processTransactions = async (txs: TransactionList, blockHeight: number): Promise<void> => {
+  public processTransactions = async (txs: StacksTransaction[], blockHeight: number): Promise<void> => {
     const tx_batch: Transaction[] = [];
-    for (const tx_hash of Object.keys(txs)) {
-      const tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
 
-      if (
-        tx_result?.found &&
-        ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
-        tx_result.result.tx_status === 'success' &&
-        tx_result.result.canonical
-      ) {
-        const tx: any = tx_result?.result;
-        const txJSON = JSON.parse(JSON.stringify(tx));
-        if (tx.event_count > EVENT_LIMIT_DEFAULT) {
-          txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
+    for (let i = 0; i < txs.length; i += TX_BATCH_SIZE) {
+      const tx = txs[i];
+      const txJSON = JSON.parse(JSON.stringify(tx));
+      if (tx.event_count > EVENT_LIMIT_DEFAULT) {
+        txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
+      }
+
+      const transaction = new Transaction();
+      transaction.hash = tx.tx_id;
+      transaction.tx = txJSON;
+
+      transaction.contract_id = tx.tx_type === 'smart_contract' ? tx['smart_contract'].contract_id
+        : tx['contract_call'].contract_id;
+
+      tx_batch.push(transaction);
+
+      try {
+        if (tx_batch.length) {
+          await AppDataSource.manager.save(tx_batch);
         }
-
-        const transaction = new Transaction();
-        transaction.hash = tx.tx_id;
-        transaction.tx = txJSON;
-        transaction.contract_id = tx[tx.tx_type].contract_id;
-        tx_batch.push(transaction);
+        console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}`);
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
-    }
-
-    try {
-      if (tx_batch.length) {
-        await AppDataSource.manager.save(tx_batch);
-      }
-      console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}`);
-    } catch (err) {
-      console.error(err);
-      throw err;
     }
   };
 
