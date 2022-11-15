@@ -315,13 +315,29 @@ export default class BlockService {
       `select * from block where height = ${latestBlockHeight}`
     );
 
+    const block = await this.fetchBlock(latestBlockHeight);
+
+    if (!block) {
+      return;
+    }
+
     if (!blocks || !blocks.length) {
-      const block = await this.fetchBlock(latestBlockHeight);
-      if (block) {
+      await this.processTipBlock(block);
+    } else {
+      const txs: StacksTransaction[] = await this.fetchBlockTransactions(block);
+      const txHashes: string[] = txs.map(tx => tx.tx_id);
+
+      const result = await AppDataSource.manager.query(
+        `select array_agg(hash) from transaction ` +
+        `WHERE block_height = ${block.height}`
+      );
+
+      const foundTxs: string[] = result.array;
+
+      if (foundTxs.length !== txHashes.length) {
         await this.processTipBlock(block);
       }
-    } else {
-      // TODO: Check tx hashes exists on DB.
     }
+
   }
 }
