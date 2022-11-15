@@ -23,9 +23,13 @@ export default class Application {
       const client: StacksApiWebSocketClient = await connectWebSocketClient(socketUrl);
 
       await client.subscribeBlocks(async (event: Block) => {
-        console.log(event);
+        console.log(`New block event with height: ${event.height}`);
+        console.log({
+          transactions: event.txs.length,
+          canonical: event.canonical,
+          iso: event.burn_block_time_iso
+        });
         if (event.canonical) {
-          // TODO: print Txs lengh, canonical, burn_block_time_iso
           await blockService.processTipBlock(event);
         }
         console.log('Listening for next block event...');
