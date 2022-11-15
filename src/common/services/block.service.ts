@@ -299,6 +299,8 @@ export default class BlockService {
       if (block) {
         await this.processTipBlock(block);
       }
+    } else {
+      // TODO: Check tx hashes exists on DB.
     }
   }
 }
