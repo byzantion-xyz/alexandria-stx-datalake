@@ -86,7 +86,7 @@ export default class Application {
     try {
       const blockService = new BlockService();
 
-      setInterval(_ => blockService.checkRecentBlockStatus(), appConfig.missingBlocksTimer * 1000);
+      setInterval(_ => blockService.checkRecentBlockStatus(), appConfig.missingBlocksTimerInMs);
 
       console.log('setTimerToCheckRecentBlock() completed');
     } catch (err) {

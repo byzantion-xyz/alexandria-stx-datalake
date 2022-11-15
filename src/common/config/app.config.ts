@@ -8,6 +8,6 @@ export const appConfig = {
   stacksWssUrl: process.env.STACKS_WSS_URL || 'wss://stacks-node-api.mainnet.stacks.co',
   streamHistoricalData: process.env.STREAM_HISTORICAL_DATA === 'true' || false,
   fetchHistoricalSmartContracts: true,
-  missingBlocksTimer: 20 * 60,
+  missingBlocksTimerInMs: 20 * 60 * 1000,
   pastBlocksToProcess1: [76922]
 };
