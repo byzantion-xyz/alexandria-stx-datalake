@@ -4,6 +4,8 @@ import { appConfig } from './common/config/app.config';
 import BlockService from './common/services/block.service';
 import { AppDataSource } from './database/data-source';
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default class Application {
   public connectDB = async (): Promise<void> => {
     try {
@@ -23,9 +25,14 @@ export default class Application {
       const client: StacksApiWebSocketClient = await connectWebSocketClient(socketUrl);
 
       await client.subscribeBlocks(async (event: Block) => {
-        console.log('New block event with height: ', event.height);
-        console.log(event);
+        console.log(`New block event received with height: ${event.height}`);
+        console.log({
+          transactions: event.txs.length,
+          canonical: event.canonical,
+          iso: event.burn_block_time_iso
+        });
         if (event.canonical) {
+          await delay(20000);
           await blockService.processTipBlock(event);
         }
         console.log('Listening for next block event...');
@@ -78,6 +85,25 @@ export default class Application {
     } catch (err) {
       console.warn('fetchHistoricalSmartContracts() failed');
       console.warn(err);
+    }
+  };
+
+  public processMostRecentBlockIfIncomplete = async (): Promise<void> => {
+    const blockService = new BlockService();
+    await blockService.processMostRecentBlockIfIncomplete();
+  };
+
+  public setTimerToCheckMostRecentBlock = async (): Promise<void> => {
+    try {
+      setInterval(
+        (_) => this.processMostRecentBlockIfIncomplete(),
+        appConfig.missingBlocksTimerInMs
+      );
+
+      console.log('setTimerToCheckMostRecentBlock() completed');
+    } catch (err) {
+      console.warn('setTimerToCheckMostRecentBlock() failed');
+      console.error(err);
     }
   };
 }
