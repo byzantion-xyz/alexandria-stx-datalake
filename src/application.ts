@@ -24,6 +24,7 @@ export default class Application {
 
       await client.subscribeBlocks(async (event: Block) => {
         if (event.canonical) {
+          console.log('New block event with height: ', event.height);
           console.log(event);
           await blockService.processTipBlock(event);
           console.log('Listening for next block event...');
