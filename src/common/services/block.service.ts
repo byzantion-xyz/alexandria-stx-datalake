@@ -289,14 +289,13 @@ export default class BlockService {
 
   public checkRecentBlockStatus = async (): Promise<void> => {
     const blockList = await this.fetchBlocksStatus();
-    const recentBlockHeight = blockList.total;
-
-    const block = await AppDataSource.manager.query(
-      `select * from block where height = ${recentBlockHeight}`
+    const latestBlockHeight = blockList.total;
+    const blocks = await AppDataSource.manager.query(
+      `select * from block where height = ${latestBlockHeight}`
     );
 
-    if (!block || block.height < recentBlockHeight) {
-      const block = await this.fetchBlock(recentBlockHeight);
+    if (!blocks || !blocks.length) {
+      const block = await this.fetchBlock(latestBlockHeight);
       if (block) {
         await this.processTipBlock(block);
       }
