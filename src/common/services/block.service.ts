@@ -310,6 +310,7 @@ export default class BlockService {
   };
 
   public checkRecentBlockStatus = async (): Promise<void> => {
+    console.log('checkRecentBlockStatus()');
     const blockList = await this.fetchBlocksStatus();
     const latestBlockHeight = blockList.total;
     const blocks = await AppDataSource.manager.query(
@@ -329,13 +330,14 @@ export default class BlockService {
       const txHashes: string[] = txs.map(tx => tx.tx_id);
 
       const result = await AppDataSource.manager.query(
-        `select array_agg(hash) from transaction ` +
+        `select array_agg(hash) hashes from transaction ` +
         `WHERE block_height = ${block.height}`
       );
 
-      const foundTxs: string[] = result.array;
+      const foundTxs: string[] = result[0].hashes;
 
-      if (foundTxs.length !== txHashes.length) {
+      if (txHashes.length && (!foundTxs || foundTxs.length !== txHashes.length)) {
+        console.warn(`Stored transactions do not match with block: ${block.height} processable transactions`);
         await this.processTipBlock(block);
       }
     }
