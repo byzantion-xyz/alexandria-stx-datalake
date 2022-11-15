@@ -211,11 +211,30 @@ export default class BlockService {
     }
   };
 
+
+  public fetchBlocksStatus = async (retry = 0): Promise<BlockListResponse | undefined> => {
+    try {
+      const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
+      const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
+      const data: BlockListResponse = result.data;
+
+      return data;
+    } catch (err) {
+      console.warn(`fetchBlocksStatus() failed`);
+      if (retry < RETRIES_PER_BLOCK) {
+        retry++;
+        await delay(2000);
+        return await this.fetchBlocksStatus(retry);
+      } else {
+        console.warn(`fetchBlockStatus() failed. Maximum number of retries reached`);
+      }
+    }
+
+  }
+
   public processHistoricalBlocks = async (): Promise<void> => {
-    const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
-    const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
-    const data: BlockListResponse = result.data;
-    const totalBlocks = data.total;
+    const blockStatus: BlockListResponse = await this.fetchBlocksStatus();
+    const totalBlocks = blockStatus.total;
 
     const processedBlockHeights = await AppDataSource.manager.query(
       'select array(select block.height::int from block);'
