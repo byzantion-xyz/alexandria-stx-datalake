@@ -82,7 +82,7 @@ export default class Application {
   };
 
   public setTimerToCheckRecentBlock = async (): Promise<void> => {
-    console.log('checkLastBlockIsProcessed()');
+    console.log('setTimerToCheckRecentBlock()');
     try {
       const blockService = new BlockService();
 
@@ -90,7 +90,7 @@ export default class Application {
 
       console.log('setTimerToCheckRecentBlock() completed');
     } catch (err) {
-      console.warn('checkLastBlockIsProcessed() failed');
+      console.warn('setTimerToCheckRecentBlock() failed');
       console.warn(err);
     }
   };
