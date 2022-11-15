@@ -36,18 +36,22 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
 
 export default class BlockService {
-  public processTipBlock = async (block: StacksBlock): Promise<void> => {
+  public processTipBlock = async (block: StacksBlock, reprocessPreviousBlocks = true): Promise<void> => {
     await this.processBlock(block);
-    const previousBlocks: number[] = [
-      block.height - 4,
-      block.height - 3,
-      block.height - 2,
-      block.height - 1
-    ];
-    await this.reprocessPastBlocks(previousBlocks);
-    console.log(
-      `COMPLETED processing block ${block.height} -- including ${previousBlocks.length} previous blocks.`
-    );
+
+    if (reprocessPreviousBlocks) {
+      const previousBlocks: number[] = [
+        block.height - 4,
+        block.height - 3,
+        block.height - 2,
+        block.height - 1
+      ];
+      await this.reprocessPastBlocks(previousBlocks);
+      console.log(
+        `COMPLETED processing block ${block.height} -- including ${previousBlocks.length} previous blocks.`
+      );
+    }
+
   };
 
   public fetchBlockTransactions = async (block: StacksBlock): Promise<StacksTransaction[]> => {
@@ -310,7 +314,6 @@ export default class BlockService {
   };
 
   public checkRecentBlockStatus = async (): Promise<void> => {
-    console.log('checkRecentBlockStatus()');
     const blockList = await this.fetchBlocksStatus();
     const latestBlockHeight = blockList.total;
     const blocks = await AppDataSource.manager.query(
@@ -324,7 +327,7 @@ export default class BlockService {
     }
 
     if (!blocks || !blocks.length) {
-      await this.processTipBlock(block);
+      await this.processTipBlock(block, true);
     } else {
       const txs: StacksTransaction[] = await this.fetchBlockTransactions(block);
       const txHashes: string[] = txs.map(tx => tx.tx_id);
@@ -338,7 +341,7 @@ export default class BlockService {
 
       if (txHashes.length && (!foundTxs || foundTxs.length !== txHashes.length)) {
         console.warn(`Stored transactions do not match with block: ${block.height} processable transactions`);
-        await this.processTipBlock(block);
+        await this.processTipBlock(block, false);
       }
     }
 
