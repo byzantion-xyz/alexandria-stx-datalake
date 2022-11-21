@@ -4,13 +4,17 @@ import axios from 'axios';
 import { Transaction } from '../../database/entities/Transaction';
 import { Block } from '../../database/entities/Block';
 
+type StacksTransaction = SmartContractTransaction | ContractCallTransaction;
+
 import type {
   Block as StacksBlock,
   TransactionFound,
   TransactionList,
   BlockListResponse,
   TransactionNotFound,
-  TransactionEvent
+  TransactionEvent,
+  SmartContractTransaction,
+  ContractCallTransaction
 } from '@stacks/stacks-blockchain-api-types';
 import { AppDataSource } from '../../database/data-source';
 import { appConfig } from '../config/app.config';
@@ -26,49 +30,77 @@ type GetEventsResponse = {
 
 const RETRIES_PER_BLOCK = 10;
 const EVENT_LIMIT_DEFAULT = 96;
+const TX_BATCH_SIZE = 50;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const axiosOptions: AxiosRequestConfig = { timeout: 15000 };
 
 export default class BlockService {
-  public processTipBlock = async (block: StacksBlock): Promise<void> => {
+  public processTipBlock = async (
+    block: StacksBlock,
+    reprocessPreviousBlocks = true
+  ): Promise<void> => {
     await this.processBlock(block);
-    const previousBlocks: number[] = [
-      block.height - 4,
-      block.height - 3,
-      block.height - 2,
-      block.height - 1
-    ];
-    await this.reprocessPastBlocks(previousBlocks);
-    console.log(
-      `COMPLETED processing block ${block.height} -- including ${previousBlocks.length} previous blocks.`
-    );
+
+    if (reprocessPreviousBlocks) {
+      const previousBlocks: number[] = [
+        block.height - 4,
+        block.height - 3,
+        block.height - 2,
+        block.height - 1
+      ];
+      await this.reprocessPastBlocks(previousBlocks);
+      console.log(
+        `COMPLETED processing block ${block.height} -- including ${previousBlocks.length} previous blocks.`
+      );
+    }
+  };
+
+  public fetchBlockTransactions = async (block: StacksBlock): Promise<StacksTransaction[]> => {
+    const txs: StacksTransaction[] = [];
+    const txsLength = block.txs.length;
+    const querySize = 50;
+
+    for (let i = 0; i < txsLength; i += querySize) {
+      const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
+
+      for (const tx_hash of block.txs.slice(i, i + querySize)) {
+        url.searchParams.append('tx_id', tx_hash);
+      }
+
+      const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
+        url.href,
+        axiosOptions
+      );
+
+      const txList: TransactionList = result.data;
+
+      for (const tx_hash of Object.keys(txList)) {
+        const tx_result: TransactionFound | TransactionNotFound | undefined = txList[tx_hash];
+        if (
+          tx_result &&
+          tx_result.found &&
+          (tx_result.result.tx_type === 'contract_call' ||
+            tx_result.result.tx_type === 'smart_contract') &&
+          tx_result.result.tx_status === 'success' &&
+          tx_result.result.canonical
+        ) {
+          txs.push(tx_result.result);
+        }
+      }
+    }
+
+    return txs;
   };
 
   public processBlock = async (block: StacksBlock, retry = 0): Promise<void> => {
     try {
-      const txsLength = block.txs.length;
-      const querySize = 50;
       console.log(
-        `Processing block height: ${block.height} transactions: ${txsLength} ` +
+        `Processing block height: ${block.height} transactions: ${block.txs.length} ` +
           `${retry > 0 ? 'retry: ' + retry : ''}`
       );
-
-      for (let i = 0; i < txsLength; i += querySize) {
-        const url = new URL(`${appConfig.stacksNodeApiUrl}extended/v1/tx/multiple`);
-
-        for (const tx_hash of block.txs.slice(i, i + querySize)) {
-          url.searchParams.append('tx_id', tx_hash);
-        }
-
-        const result: AxiosResponse = await axios.get<GetTransactionsResponse>(
-          url.href,
-          axiosOptions
-        );
-        const txs: TransactionList = result.data;
-
-        await this.processTransactions(txs, block.height);
-      }
+      const txs = await this.fetchBlockTransactions(block);
+      await this.processTransactions(txs, block.height);
 
       const newBlock: Block = new Block();
       newBlock.hash = block.hash;
@@ -175,47 +207,72 @@ export default class BlockService {
     }
   };
 
-  public processTransactions = async (txs: TransactionList, blockHeight: number): Promise<void> => {
-    const tx_batch: Transaction[] = [];
-    for (const tx_hash of Object.keys(txs)) {
-      const tx_result: TransactionFound | TransactionNotFound | undefined = txs[tx_hash];
+  public processTransactions = async (
+    txs: StacksTransaction[],
+    blockHeight: number
+  ): Promise<void> => {
+    console.log('processTransaction() transactions: ', txs.length);
+    let tx_batch: Transaction[] = [];
 
-      if (
-        tx_result?.found &&
-        ['contract_call', 'smart_contract'].includes(tx_result.result.tx_type) &&
-        tx_result.result.tx_status === 'success' &&
-        tx_result.result.canonical
-      ) {
-        const tx: any = tx_result?.result;
-        const txJSON = JSON.parse(JSON.stringify(tx));
-        if (tx.event_count > EVENT_LIMIT_DEFAULT) {
-          txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
-        }
+    for (let i = 0; i < txs.length; i++) {
+      const tx = txs[i];
+      const txJSON = JSON.parse(JSON.stringify(tx));
 
-        const transaction = new Transaction();
-        transaction.hash = tx.tx_id;
-        transaction.tx = txJSON;
-        transaction.contract_id = tx[tx.tx_type].contract_id;
-        tx_batch.push(transaction);
+      if (tx.event_count > EVENT_LIMIT_DEFAULT) {
+        txJSON.events = await this.fetchTransactionEvents(tx.tx_id);
+      }
+
+      const transaction = new Transaction();
+      transaction.hash = tx.tx_id;
+      transaction.tx = txJSON;
+
+      transaction.contract_id =
+        tx.tx_type === 'smart_contract'
+          ? tx['smart_contract'].contract_id
+          : tx['contract_call'].contract_id;
+
+      tx_batch.push(transaction);
+
+      if (tx_batch.length === TX_BATCH_SIZE) {
+        await AppDataSource.manager.save(tx_batch);
+        console.log(
+          `processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}/${txs.length}`
+        );
+        tx_batch = [];
       }
     }
 
+    if (tx_batch.length) {
+      await AppDataSource.manager.save(tx_batch);
+      console.log(
+        `processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}/${txs.length}`
+      );
+    }
+  };
+
+  public fetchBlocksStatus = async (retry = 0): Promise<BlockListResponse> => {
     try {
-      if (tx_batch.length) {
-        await AppDataSource.manager.save(tx_batch);
-      }
-      console.log(`processTransactions() block: ${blockHeight}, txs saved: ${tx_batch.length}`);
+      const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
+      const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
+      const data: BlockListResponse = result.data;
+
+      return data;
     } catch (err) {
-      console.error(err);
-      throw err;
+      console.warn(`fetchBlocksStatus() failed`);
+      if (retry < RETRIES_PER_BLOCK) {
+        retry++;
+        await delay(2000);
+        return await this.fetchBlocksStatus(retry);
+      } else {
+        console.warn(`fetchBlockStatus() failed. Maximum number of retries reached`);
+        throw err;
+      }
     }
   };
 
   public processHistoricalBlocks = async (): Promise<void> => {
-    const recentBlockUrl = `${appConfig.stacksNodeApiUrl}extended/v1/block?limit=1`;
-    const result: AxiosResponse = await axios.get(recentBlockUrl, axiosOptions);
-    const data: BlockListResponse = result.data;
-    const totalBlocks = data.total;
+    const blockStatus: BlockListResponse = await this.fetchBlocksStatus();
+    const totalBlocks = blockStatus.total;
 
     const processedBlockHeights = await AppDataSource.manager.query(
       'select array(select block.height::int from block);'
@@ -264,6 +321,49 @@ export default class BlockService {
       } else {
         console.warn(`fetchBlock() height: ${height} failed. Maximum number of retries reached`);
       }
+    }
+  };
+
+  public processMostRecentBlockIfIncomplete = async (): Promise<void> => {
+    let blockProcessed = false;
+    const blockList = await this.fetchBlocksStatus();
+    const latestBlockHeight = blockList.total;
+    const blocks = await AppDataSource.manager.query(
+      `select * from block where height = ${latestBlockHeight}`
+    );
+
+    const block = await this.fetchBlock(latestBlockHeight);
+
+    if (!block) {
+      return;
+    }
+
+    if (!blocks || !blocks.length) {
+      // block is missing, so process the entire block
+      await this.processTipBlock(block, true);
+      blockProcessed = true;
+    } else {
+      // block exists, so check whether there are missing transactions and process
+      const txs: StacksTransaction[] = await this.fetchBlockTransactions(block);
+      const txHashes: string[] = txs.map((tx) => tx.tx_id);
+
+      const result = await AppDataSource.manager.query(
+        `select array_agg(hash) hashes from transaction ` + `WHERE block_height = ${block.height}`
+      );
+
+      const foundTxs: string[] = result[0].hashes;
+
+      if (txHashes.length && (!foundTxs || foundTxs.length !== txHashes.length)) {
+        console.warn(
+          `Stored transactions do not match with block: ${block.height} processable transactions`
+        );
+        await this.processTipBlock(block, false);
+        blockProcessed = true;
+      }
+    }
+
+    if (!blockProcessed) {
+      console.log(`Block reprocessing not required for block: ${latestBlockHeight}`);
     }
   };
 }

@@ -8,9 +8,15 @@ import { appConfig } from './common/config/app.config';
 (async () => {
   try {
     const application = new Application();
+
     await application.connectDB();
-    await application.runMigrations();
+
     await application.socketSubscription();
+
+    if (appConfig.enableMissingBlocksTimer) {
+      await application.processMostRecentBlockIfIncomplete();
+      await application.setTimerToCheckMostRecentBlock();
+    }
 
     if (appConfig.streamHistoricalData) {
       await application.fetchHistoricalBlocks();
